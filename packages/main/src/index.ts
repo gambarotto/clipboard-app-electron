@@ -3,7 +3,7 @@ import './security-restrictions';
 import {restoreOrCreateWindow} from '/@/mainWindow';
 import {platform} from 'node:process';
 import updater from 'electron-updater';
-
+import { PrismaClient } from '@prisma/client';
 /**
  * Prevent electron from running multiple instances.
  */
@@ -36,6 +36,24 @@ app.on('activate', restoreOrCreateWindow);
 /**
  * Create the application window when the background process is ready.
  */
+
+
+const prisma = new PrismaClient();
+
+async function main() {
+  const users = await prisma.user.findMany();
+  console.log(users);
+}
+
+main()
+  .then(async () => {
+    await prisma.$disconnect();
+  })
+  .catch(async (e) => {
+    console.error(e);
+    await prisma.$disconnect();
+    process.exit(1);
+  });
 app
   .whenReady()
   .then(restoreOrCreateWindow)
