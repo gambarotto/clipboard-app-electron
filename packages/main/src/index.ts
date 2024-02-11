@@ -4,6 +4,9 @@ import {restoreOrCreateWindow} from '/@/mainWindow';
 import {platform} from 'node:process';
 import updater from 'electron-updater';
 import { PrismaClient } from '@prisma/client';
+import { CategoryRepository } from '../../repositories/CategoryRepositories';
+import { CategoryServices } from '../../services/ipc-main/CategoryServices';
+
 /**
  * Prevent electron from running multiple instances.
  */
@@ -36,27 +39,23 @@ app.on('activate', restoreOrCreateWindow);
 /**
  * Create the application window when the background process is ready.
  */
-
-
 const prisma = new PrismaClient();
 
-async function main() {
-  const users = await prisma.user.findMany();
-  console.log(users);
+const categoryRepository = new CategoryRepository(prisma);
+const categoryServices = new CategoryServices(categoryRepository);
+
+async function registerListeners() {
+  categoryServices.createCategory();
+  categoryServices.updateCategory();
+  categoryServices.deleteCategory();
+  categoryServices.getCategories();
+  categoryServices.getCategory();
 }
 
-main()
-  .then(async () => {
-    await prisma.$disconnect();
-  })
-  .catch(async (e) => {
-    console.error(e);
-    await prisma.$disconnect();
-    process.exit(1);
-  });
 app
   .whenReady()
   .then(restoreOrCreateWindow)
+  .then(registerListeners)
   .catch(e => console.error('Failed create window:', e));
 
 /**

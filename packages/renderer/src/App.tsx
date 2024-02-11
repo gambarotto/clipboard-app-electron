@@ -1,6 +1,13 @@
-import { Button } from '@mui/material';
+
+import CssBaseline from '@mui/material/CssBaseline';
+import Home from './pages/Home';
 
 const App = () => {
-  return <Button variant="contained">Hello world</Button>;
+  return (
+    <>
+      <CssBaseline />
+      <Home />
+    </>
+  );
 };
 export default App;

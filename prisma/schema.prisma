@@ -10,18 +10,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
-  posts Post[]
+model Annotation {
+  id       Int        @id @default(autoincrement())
+  name     String
+  content  String
+  category Category[]
 }
 
-model Post {
-  id        Int     @id @default(autoincrement())
-  title     String
-  content   String?
-  published Boolean @default(false)
-  author    User    @relation(fields: [authorId], references: [id])
-  authorId  Int
+model Category {
+  id          Int          @id @default(autoincrement())
+  title       String
+  active      Boolean      @default(true)
+  color       String
+  annotations Annotation[]
 }
