@@ -11,10 +11,10 @@ datasource db {
 }
 
 model Annotation {
-  id       Int        @id @default(autoincrement())
-  name     String
-  content  String
-  category Category[]
+  id         Int        @id @default(autoincrement())
+  name       String
+  content    String
+  categories Category[]
 }
 
 model Category {

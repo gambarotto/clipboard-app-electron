@@ -5,7 +5,9 @@ import {platform} from 'node:process';
 import updater from 'electron-updater';
 import { PrismaClient } from '@prisma/client';
 import { CategoryRepository } from '../../repositories/CategoryRepositories';
-import { CategoryServices } from '../../services/ipc-main/CategoryServices';
+import { AnnotationRepositories } from '../../repositories/AnnotationRepositories';
+import { CategoryMainServices } from '../../services/ipc-main/Category-main-services';
+import { AnnotationMainServices } from '../../services/ipc-main/Annotation-main-services';
 
 /**
  * Prevent electron from running multiple instances.
@@ -42,14 +44,23 @@ app.on('activate', restoreOrCreateWindow);
 const prisma = new PrismaClient();
 
 const categoryRepository = new CategoryRepository(prisma);
-const categoryServices = new CategoryServices(categoryRepository);
+const categoryMainServices = new CategoryMainServices(categoryRepository);
+
+const annotationRepositories = new AnnotationRepositories(prisma);
+const annotationMainServices = new AnnotationMainServices(annotationRepositories);
 
 async function registerListeners() {
-  categoryServices.createCategory();
-  categoryServices.updateCategory();
-  categoryServices.deleteCategory();
-  categoryServices.getCategories();
-  categoryServices.getCategory();
+  categoryMainServices.createCategory();
+  categoryMainServices.updateCategory();
+  categoryMainServices.deleteCategory();
+  categoryMainServices.getCategories();
+  categoryMainServices.getCategory();
+
+  annotationMainServices.createCategory();
+  annotationMainServices.updateCategory();
+  annotationMainServices.deleteCategory();
+  annotationMainServices.getCategories();
+  annotationMainServices.getCategory();
 }
 
 app

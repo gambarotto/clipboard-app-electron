@@ -4,6 +4,7 @@
  * @type {import('vite').UserConfig}
  * @see https://vitest.dev/config/
  */
+
 const config = {
   test: {
     /**
@@ -18,6 +19,11 @@ const config = {
     testTimeout: 30_000,
     hookTimeout: 30_000,
   },
+/*   resolve: {
+    alias: {
+      '@services/renderer': path.resolve(__dirname, 'packages/services/ipc-renderer'), // Ajuste o caminho conforme necessário
+    },
+  }, */
 };
 
 export default config;

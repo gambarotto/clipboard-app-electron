@@ -1,7 +1,7 @@
 import { ipcMain } from 'electron';
 import type { TCategoryRepository } from '../../repositories/CategoryRepositories.js';
 
-export class CategoryServices {
+export class CategoryMainServices {
   private categoryRepository: TCategoryRepository;
   constructor(categoryRepository: TCategoryRepository) {
     this.categoryRepository = categoryRepository;
@@ -10,31 +10,31 @@ export class CategoryServices {
   async createCategory() {
     ipcMain.on('create-category', async (event, category) => {
       const newCategory = await this.categoryRepository.createCategory(category);
-      event.reply('category-created', newCategory);
+      event.returnValue = newCategory;
     });
   }
   async updateCategory() {
     ipcMain.on('update-category', async (event, category) => {
       const updatedCategory = await this.categoryRepository.updateCategory(category);
-      event.reply('category-updated', updatedCategory);
+      event.returnValue = updatedCategory;
     });
   }
   async deleteCategory() {
-    ipcMain.on('delete-category', async (event, category) => {
-      await this.categoryRepository.deleteCategory(category);
-      event.reply('category-deleted');
+    ipcMain.on('delete-category', async (event, categoryId) => {
+      await this.categoryRepository.deleteCategory(categoryId);
+      event.returnValue = 'category-deleted';
     });
   }
   async getCategories() {
     ipcMain.on('get-categories', async (event) => {
       const categories = await this.categoryRepository.getCategories();
-      event.reply('categories', categories);
+      event.returnValue = categories;
     });
   }
   async getCategory() {
     ipcMain.on('get-category', async (event, id) => {
       const category = await this.categoryRepository.getCategoryById(id);
-      event.reply('category', category);
+      event.returnValue = category;
     });
   }
 }

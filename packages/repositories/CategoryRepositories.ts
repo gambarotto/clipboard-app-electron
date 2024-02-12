@@ -2,19 +2,14 @@
 import type { Prisma} from '@prisma/client';
 import type { PrismaClient } from '@prisma/client';
 import type { DefaultArgs } from '@prisma/client/runtime/library';
+import type { TCategory } from '../models/CategoryModel';
 
-type TCategory = {
-  id: number;
-  title: string;
-  active: boolean;
-  color: string;
-}
 export type TCategoryRepository = {
   getCategories: () => Promise<TCategory[]>;
   getCategoryById: (id: number) => Promise<TCategory | null>;
   createCategory: (category: Omit<TCategory, 'id'>) => Promise<TCategory>;
   updateCategory: (category: TCategory) => Promise<TCategory>;
-  deleteCategory: (category: TCategory) => Promise<void>;
+  deleteCategory: (categoryId: number) => Promise<void>;
 
 }
 
@@ -48,7 +43,7 @@ export class CategoryRepository implements TCategoryRepository {
     const updatedCategory = await this.prisma.category.update({where: {id: category.id}, data: category});
     return updatedCategory;
   }
-  async deleteCategory(category: TCategory) {
-    await this.prisma.category.delete({ where: { id: category.id }});
+  async deleteCategory(categoryId: number) {
+    await this.prisma.category.delete({ where: { id: categoryId }});
   }
 }
