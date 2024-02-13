@@ -10,7 +10,6 @@ export type TCategoryRepository = {
   createCategory: (category: Omit<TCategory, 'id'>) => Promise<TCategory>;
   updateCategory: (category: TCategory) => Promise<TCategory>;
   deleteCategory: (categoryId: number) => Promise<void>;
-
 }
 
 export class CategoryRepository implements TCategoryRepository {
@@ -19,6 +18,7 @@ export class CategoryRepository implements TCategoryRepository {
   constructor(prisma: PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>) {
     this.prisma = prisma;
   }
+
   async getCategories() {
     const categories = await this.prisma.category.findMany();
     return categories;

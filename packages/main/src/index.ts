@@ -38,9 +38,6 @@ app.on('window-all-closed', () => {
  */
 app.on('activate', restoreOrCreateWindow);
 
-/**
- * Create the application window when the background process is ready.
- */
 const prisma = new PrismaClient();
 
 const categoryRepository = new CategoryRepository(prisma);
@@ -63,6 +60,9 @@ async function registerListeners() {
   annotationMainServices.getCategory();
 }
 
+/**
+ * Create the application window when the background process is ready.
+ */
 app
   .whenReady()
   .then(restoreOrCreateWindow)

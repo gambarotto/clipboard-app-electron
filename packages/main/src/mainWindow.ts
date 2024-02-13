@@ -1,10 +1,23 @@
 import {app, BrowserWindow} from 'electron';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import palette from '../../renderer/src/theme/palette';
 
 async function createWindow() {
   const browserWindow = new BrowserWindow({
     show: false, // Use the 'ready-to-show' event to show the instantiated BrowserWindow.
+    titleBarStyle: 'hidden',
+    titleBarOverlay: {
+      color: palette.palette.background.default,
+      symbolColor: palette.palette.primary.main,
+      height: 50,
+    },
+    backgroundMaterial: 'auto',
+    title: 'Quicky clipboard manager',
+    alwaysOnTop: true,
+    minWidth: 400,
+    maxWidth: 400,
+    minHeight: 800,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -26,7 +39,7 @@ async function createWindow() {
     browserWindow?.show();
 
     if (import.meta.env.DEV) {
-      //browserWindow?.webContents.openDevTools();
+      browserWindow?.webContents.openDevTools();
     }
   });
 

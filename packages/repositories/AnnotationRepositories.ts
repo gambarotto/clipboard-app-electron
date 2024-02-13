@@ -18,6 +18,7 @@ export class AnnotationRepositories implements TAnnotationRepositories{
   constructor(prisma: PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>) {
     this.prisma = prisma;
   }
+
   async createAnnotation({ name, content, categories }: TCreateAnnotationParams) {
     const newAnnotation = await this.prisma.annotation.create({
       data: {
