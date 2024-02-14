@@ -38,6 +38,7 @@ app.on('window-all-closed', () => {
  */
 app.on('activate', restoreOrCreateWindow);
 
+
 const prisma = new PrismaClient();
 
 const categoryRepository = new CategoryRepository(prisma);
@@ -47,17 +48,17 @@ const annotationRepositories = new AnnotationRepositories(prisma);
 const annotationMainServices = new AnnotationMainServices(annotationRepositories);
 
 async function registerListeners() {
-  categoryMainServices.createCategory();
-  categoryMainServices.updateCategory();
-  categoryMainServices.deleteCategory();
-  categoryMainServices.getCategories();
-  categoryMainServices.getCategory();
+  await categoryMainServices.createCategory();
+  await categoryMainServices.updateCategory();
+  await categoryMainServices.deleteCategory();
+  await categoryMainServices.getCategories();
+  await categoryMainServices.getCategory();
 
-  annotationMainServices.createCategory();
-  annotationMainServices.updateCategory();
-  annotationMainServices.deleteCategory();
-  annotationMainServices.getCategories();
-  annotationMainServices.getCategory();
+  await annotationMainServices.createCategory();
+  await annotationMainServices.updateCategory();
+  await annotationMainServices.deleteCategory();
+  await annotationMainServices.getCategories();
+  await annotationMainServices.getCategory();
 }
 
 /**
@@ -66,13 +67,12 @@ async function registerListeners() {
 app
   .whenReady()
   .then(restoreOrCreateWindow)
-  .then(registerListeners)
   .catch(e => console.error('Failed create window:', e));
 
-/**
- * Install Vue.js or any other extension in development mode only.
- * Note: You must install `electron-devtools-installer` manually
- */
+app.on('ready', async () => {
+  await registerListeners();
+});
+
 // if (import.meta.env.DEV) {
 //   app
 //     .whenReady()

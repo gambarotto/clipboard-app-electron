@@ -9,10 +9,13 @@ import { Button, IconButton, Stack, TextField, Tooltip  } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ClearIcon from '@mui/icons-material/Clear';
 import MultipleSelectChip from './MultiSelectChip';
-
+import type { TAnnotation, TAnnotationCategoryParams } from '../../../models/AnnotationModel';
+import { useCallback, useState } from 'react';
+import { useUser } from '../context/user-context';
 interface Props {
   open: boolean;
   handleClose: () => void;
+  annotation: TAnnotation | undefined;
 }
 
 const style = {
@@ -26,26 +29,44 @@ const style = {
   borderRadius: 2,
 };
 
-const names = [
-  'Oliver Hansen',
-  'Van Henry',
-  'April Tucker',
-  'Ralph Hubbard',
-  'Omar Alexander',
-  'Carlos Abbott',
-  'Miriam Wagner',
-  'Bradley Wilkerson',
-  'Virginia Andrews',
-  'Kelly Snyder',
-];
+const getNameCategories = (annotationSelected: TAnnotation) => {
+  return annotationSelected.categories.map(cat => cat.title);
+};
 
+export function ModalNovaAnotacao({ open, handleClose, annotation }: Props) {
+  const { createAnnotation, categories } = useUser();
+  const [selectedCategories, setSelectedCategories] = useState<TAnnotationCategoryParams[]>([]);
+  const [selectedCategoriesNames, setSelectedCategoriesNames] = useState<string[]>(annotation ? getNameCategories(annotation):[]);
+  const [nomeAnnotation, setNomeAnnotation] = useState(annotation?.name || '');
+  const [contentAnnotation, setContentAnnotation] = useState(annotation?.content || '');
 
-export function ModalNovaAnotacao({ open, handleClose }: Props) {
-  //const [categories, setCategories] = React.useState('');
+  const handleCategoryChange = (data: string[]) => {
+    const formattedData = categories
+      .filter(category => data.includes(category.title))
+      .map(cat => ({id: cat.id}));
 
-  /* const handleChange = (event: SelectChangeEvent) => {
-    setCategories(event.target.value as string);
-  }; */
+    setSelectedCategories(formattedData);
+    setSelectedCategoriesNames(data);
+  };
+
+  const handleAnnotation = useCallback(async() => {
+    const annotation = {
+      name: nomeAnnotation,
+      content: contentAnnotation,
+      categories: selectedCategories,
+    };
+
+    await createAnnotation(annotation);
+    handleClose();
+  }, [nomeAnnotation, contentAnnotation, selectedCategories, handleClose, createAnnotation]);
+
+  const handleClear = useCallback(() => {
+    setNomeAnnotation('');
+    setContentAnnotation('');
+    setSelectedCategories([]);
+    setSelectedCategoriesNames([]);
+  }, []);
+
   return (
     <Modal
       aria-labelledby="transition-modal-title"
@@ -96,8 +117,11 @@ export function ModalNovaAnotacao({ open, handleClose }: Props) {
             p={2}
           >
             <TextField
+              id="nome-annotation"
               label="Nome"
               variant="outlined"
+              value={annotation?.name ?? nomeAnnotation}
+              onChange={e => setNomeAnnotation(e.target.value)}
               fullWidth
               sx={{
                 '-webkit-app-region': 'no-drag',
@@ -132,11 +156,13 @@ export function ModalNovaAnotacao({ open, handleClose }: Props) {
               }}
             />
             <TextField
-              id="outlined-multiline-static"
+              id="content-annotation"
               label="Anotação"
               multiline
               rows={4}
               fullWidth
+              value={contentAnnotation}
+              onChange={e => setContentAnnotation(e.target.value)}
               sx={{
                 mb: 4,
                 '& label.Mui-focused': {
@@ -170,7 +196,9 @@ export function ModalNovaAnotacao({ open, handleClose }: Props) {
             />
             <MultipleSelectChip
               title="Categorias"
-              items={names}
+              items={categories}
+              valueSelected={selectedCategoriesNames}
+              handleCategoryChange={handleCategoryChange}
             />
             <Stack
               direction={'row'}
@@ -179,7 +207,7 @@ export function ModalNovaAnotacao({ open, handleClose }: Props) {
               justifyContent={'flex-end'}
             >
               <Tooltip title="Limpar campos">
-                <IconButton>
+                <IconButton onClick={handleClear}>
                   <DeleteIcon
                     fontSize="small"
                     sx={{
@@ -190,6 +218,7 @@ export function ModalNovaAnotacao({ open, handleClose }: Props) {
               </Tooltip>
               <Button
                 variant="contained"
+                onClick={handleAnnotation}
                 sx={{
                   color: 'background.default',
                 }}

@@ -10,6 +10,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import ColorLensIcon from '@mui/icons-material/ColorLens';
 import { useCallback, useState } from 'react';
 import { ViewColorPicker } from './ViewColorPicker';
+import { useUser } from '../context/user-context';
 
 interface Props {
   open: boolean;
@@ -29,8 +30,10 @@ const style = {
 
 
 export function ModalNewCategory({ open, handleClose }: Props) {
+  const { createCategory } = useUser();
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [colorCategory, setColorCategory] = useState('');
+  const [nameCategory,setNameCategory] = useState('');
 
   const handleCloseColorPicker = useCallback(() => {
     setShowColorPicker(false);
@@ -38,11 +41,11 @@ export function ModalNewCategory({ open, handleClose }: Props) {
   const handleColorCategory = useCallback((color: string) => {
       setColorCategory(color);
   }, []);
-  //const [categories, setCategories] = React.useState('');
+  const handleCategory = useCallback(async() => {
+    await createCategory({title: nameCategory, color: colorCategory, active: true});
+    handleClose();
+  }, [createCategory, nameCategory, colorCategory, handleClose]);
 
-  /* const handleChange = (event: SelectChangeEvent) => {
-    setCategories(event.target.value as string);
-  }; */
   return (
     <Modal
       aria-labelledby="transition-modal-title"
@@ -94,6 +97,7 @@ export function ModalNewCategory({ open, handleClose }: Props) {
             <TextField
               label="Nome da Categoria"
               variant="outlined"
+              onChange={e => setNameCategory(e.target.value)}
               fullWidth
               sx={{
                 '-webkit-app-region': 'no-drag',
@@ -167,6 +171,7 @@ export function ModalNewCategory({ open, handleClose }: Props) {
             >
               <Button
                 variant="contained"
+                onClick={handleCategory}
                 sx={{
                   color: 'background.default',
                 }}

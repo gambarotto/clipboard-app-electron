@@ -9,10 +9,14 @@ import FormControl from '@mui/material/FormControl';
 import type {SelectChangeEvent} from '@mui/material/Select';
 import Select from '@mui/material/Select';
 import Chip from '@mui/material/Chip';
+import type { TCategory } from '../../../models/CategoryModel';
+import { useEffect, useState } from 'react';
 
 interface Props {
   title: string;
-  items: string[];
+  items: TCategory[];
+  valueSelected: string[];
+  handleCategoryChange: (data: string[]) => void;
 }
 
 const ITEM_HEIGHT = 48;
@@ -36,18 +40,26 @@ function getStyles(name: string, personName: readonly string[], theme: Theme) {
   };
 }
 
-export default function MultipleSelectChip({title, items}: Props) {
+export default function MultipleSelectChip({title, items, handleCategoryChange, valueSelected}: Props) {
   const theme = useTheme();
-  const [personName, setPersonName] = React.useState<string[]>([]);
- 
-  const handleChange = (event: SelectChangeEvent<typeof personName>) => {
+  const [categoryTitle, setcategoryTitle] = useState<string[]>(valueSelected);
+
+  useEffect(() => {
+    if (valueSelected.length === 0) {
+      setcategoryTitle([]);
+    }
+  }, [valueSelected]);
+  
+  const handleChange = (event: SelectChangeEvent<typeof categoryTitle>) => {
     const {
       target: {value},
     } = event;
-    setPersonName(
+    setcategoryTitle(
       // On autofill we get a stringified value.
       typeof value === 'string' ? value.split(',') : value,
     );
+
+    handleCategoryChange(typeof value === 'string' ? value.split(',') : value);
   };
 
   return (
@@ -69,7 +81,7 @@ export default function MultipleSelectChip({title, items}: Props) {
           labelId="demo-multiple-chip-label"
           id="demo-multiple-chip"
           multiple
-          value={personName}
+          value={categoryTitle}
           onChange={handleChange}
           input={
             <OutlinedInput
@@ -105,13 +117,13 @@ export default function MultipleSelectChip({title, items}: Props) {
             },
           }}
         >
-          {items.map(name => (
+          {items.map(category => (
             <MenuItem
-              key={name}
-              value={name}
-              style={getStyles(name, personName, theme)}
+              key={category.id}
+              value={category.title}
+              style={getStyles(category.title, categoryTitle, theme)}
             >
-              {name}
+              {category.title}
             </MenuItem>
           ))}
         </Select>
