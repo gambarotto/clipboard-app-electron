@@ -32,11 +32,15 @@ export class CategoryRepository implements TCategoryRepository {
     return category;
   }
   async createCategory(category: Omit<TCategory, 'id'>) {
+    const alreadyExists = await this.prisma.category.findFirst({where: {
+      title: category.title,
+    }});
+    if (alreadyExists) {
+      throw new Error('Category already exists');
+    }
     const newCategory = await this.prisma.category.create({
       data: category,
     });
-    console.log('newCategory', newCategory);
-    
     return newCategory;
   }
   async updateCategory(category: TCategory) {

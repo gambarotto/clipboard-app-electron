@@ -2,7 +2,7 @@
 import type { Prisma} from '@prisma/client';
 import type { PrismaClient } from '@prisma/client';
 import type { DefaultArgs } from '@prisma/client/runtime/library';
-import type { TAnnotation, TCreateAnnotationParams } from '../models/AnnotationModel';
+import type { TAnnotation, TCreateAnnotationParams, TUpdateAnnotationParams } from '../models/AnnotationModel';
 
 export type TAnnotationRepositories = {
   getAnnotations: () => Promise<TAnnotation[]>;
@@ -34,17 +34,23 @@ export class AnnotationRepositories implements TAnnotationRepositories{
     });
     return newAnnotation;
   }
-  async updateAnnotation(data: TAnnotation) {
-    const updatedAnnotation = await this.prisma.annotation.update({where: {id: 1}, data: {
-      name: data.name,
-      content: data.content,
-      categories: {
-        connect: data.categories.map((categoryId) => ({id: categoryId.id})),
+  async updateAnnotation(data: TUpdateAnnotationParams) {
+    const updatedAnnotation = await this.prisma.annotation.update(
+      { where: {
+        id: data.id,
+      }, 
+      data: {
+        name: data.name,
+        content: data.content,
+        categories: {
+          set: data.categories.map((categoryId) => ({ id: categoryId.id })),
+        },
+      }, 
+      include: {
+        categories: true,
       },
-    }, include: {
-      categories: true,
-    },
-});
+    });
+    
     return updatedAnnotation;
   }
   async deleteAnnotation(annotationId: number) {

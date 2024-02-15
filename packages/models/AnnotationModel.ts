@@ -9,4 +9,7 @@ export type TAnnotation = {
 export type TCreateAnnotationParams = Omit<TAnnotation, 'id' | 'categories'> & {
   categories: TAnnotationCategoryParams[];
 };
+export type TUpdateAnnotationParams = Omit<TAnnotation, 'categories'> & {
+  categories: TAnnotationCategoryParams[];
+};
 export type TAnnotationCategoryParams = { id: number }

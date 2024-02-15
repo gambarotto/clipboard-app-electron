@@ -1,6 +1,6 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import type { TCategory, TCreateCategoryParams } from '../../../models/CategoryModel';
-import type { TAnnotation, TCreateAnnotationParams } from '../../../models/AnnotationModel';
+import type { TAnnotation, TCreateAnnotationParams, TUpdateAnnotationParams } from '../../../models/AnnotationModel';
 import { CategoryRendererServices } from '../../../services/ipc-renderer/Category-renderer-services';
 import { AnnotationRendererServices } from '../../../services/ipc-renderer/Annotation-renderer-services';
 
@@ -8,7 +8,13 @@ type TInitialState = {
   categories: TCategory[];
   annotations: TAnnotation[];
   createCategory(category: TCreateCategoryParams): Promise<void>;
+  updateCategory: (category: TCategory) => Promise<void>;
+  deleteCategory: (categoryId: number) => Promise<void>;
+  getCategories: () => Promise<void>;
   createAnnotation(annotation: TCreateAnnotationParams): Promise<void>;
+  updateAnnotation: (annotation: TUpdateAnnotationParams) => Promise<void>;
+  deleteAnnotation: (annotationId: number) => Promise<void>;
+  getAnnotations: () => Promise<void>;
 };
 
 const UserContext = createContext<TInitialState>({} as TInitialState);
@@ -21,47 +27,119 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const annotationRendererServices = new AnnotationRendererServices(window.electron.ipcRenderer);
 
   useEffect(() => {
-    if (window.electron.ipcRenderer) {
-      categoryRendererServices
-        .getCategories()
-        .then(categoriesData => {
-          setCategories(categoriesData);
-        })
-        .catch(error => {
-          console.log('error', error);
-        });
-    }
+    getCategories();
   }, []);
 
   useEffect(() => {
-    annotationRendererServices
-      .getAnnotations()
-      .then(annotationsData => {
-        setAnnotations(annotationsData);
-      })
-      .catch(error => {
-        console.log('error', error);
-      });
+    getAnnotations();
   }, []);
 
-  async function createCategory (category: TCreateCategoryParams) {
+  // Categories
+  const createCategory = useCallback(
+    async (category: TCreateCategoryParams) => {
+      try {
+        const newCategory = await categoryRendererServices.createCategory(category);
+        setCategories([...categories, newCategory]);
+      } catch (error) {
+        console.log('error', error);
+      }
+    },
+    [categoryRendererServices.createCategory],
+  );
+  const updateCategory = useCallback(
+    async (category: TCategory) => {
+      try {
+        const updatedCategory = await categoryRendererServices.updateCategory(category);
+        if (updatedCategory) {
+          setCategories([...categories, updatedCategory]);
+        }
+      } catch (error) {
+        console.log('ctx.updateCategory', error);
+      }
+    },
+    [categoryRendererServices.updateCategory],
+  );
+  const deleteCategory = useCallback(
+    async(categoryId: number) => {
+      try {
+        await categoryRendererServices.deleteCategory(categoryId);
+      } catch (error) {
+        console.log('ctx.deleteCategory', error);
+      }
+    },
+    [categoryRendererServices.deleteCategory],
+  );
+  const getCategories = useCallback(async () => {
     try {
-      const newCategory = await categoryRendererServices.createCategory(category);
-      setCategories([...categories, newCategory]);
+      const categoriesData = await categoryRendererServices.getCategories();
+      setCategories(categoriesData);
     } catch (error) {
       console.log('error', error);
     }
-  }
-  async function createAnnotation (annotation: TCreateAnnotationParams) {
-    try {
-      const newAnnotation = await annotationRendererServices.createAnnotation(annotation);
-      setAnnotations([...annotations, newAnnotation]);
-    } catch (error) {
-      console.log('error', error);
-    }
-  }
+  }, [categoryRendererServices.getCategories]);
 
-  return <UserContext.Provider value={{categories, annotations, createAnnotation, createCategory}}>{children}</UserContext.Provider>;
+  // Annotations
+  const createAnnotation = useCallback(
+    async (annotation: TCreateAnnotationParams) => {
+      try {
+        const newAnnotation = await annotationRendererServices.createAnnotation(annotation);
+        setAnnotations([...annotations, newAnnotation]);
+      } catch (error) {
+        console.log('error', error);
+      }
+    },
+    [annotationRendererServices.createAnnotation],
+  );
+  const updateAnnotation = useCallback(
+    async (annotation: TUpdateAnnotationParams) => {
+      try {
+        const updatedAnnotation = await annotationRendererServices.updateAnnotation(annotation);
+        if (updatedAnnotation) {
+          setAnnotations([...annotations, updatedAnnotation]);
+        }
+      } catch (error) {
+        console.log('ctx.updateAnnotation', error);
+      }
+    },
+    [annotationRendererServices.updateAnnotation],
+  );
+  const deleteAnnotation = useCallback(
+    async (annotationId: number) => {
+      try {
+        await annotationRendererServices.deleteAnnotation(annotationId);
+      } catch (error) {
+        console.log('ctx.deleteAnnotation', error);
+      }
+    },
+    [annotationRendererServices.deleteAnnotation],
+  );
+  const getAnnotations = useCallback(async () => {
+    try {
+      const annotationsData = await annotationRendererServices.getAnnotations();
+      setAnnotations(annotationsData);
+    } catch (error) {
+      console.log('error', error);
+    }
+  }, [annotationRendererServices.getAnnotations]);
+
+  return (
+    <UserContext.Provider
+      value={{
+        categories,
+        annotations,
+        createCategory,
+        updateCategory,
+        deleteCategory,
+        getCategories,
+        createAnnotation,
+        updateAnnotation,
+        deleteAnnotation,
+        getAnnotations,
+      }}
+    >
+      {children}
+    </UserContext.Provider>
+  );
 }
 
 export const useUser = () => {

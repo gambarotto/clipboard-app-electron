@@ -14,7 +14,7 @@ export class CategoryRendererServices {
     const category = this.ipcElectron.sendSync('update-category', {id, title, active, color});
     return category;
   }
-  async deleteCategory(categoryId: string) {
+  async deleteCategory(categoryId: number) {
     this.ipcElectron.sendSync('delete-category', categoryId);
   }
   async getCategories(): Promise<TCategory[]> {

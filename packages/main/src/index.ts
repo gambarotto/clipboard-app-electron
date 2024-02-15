@@ -47,6 +47,12 @@ const categoryMainServices = new CategoryMainServices(categoryRepository);
 const annotationRepositories = new AnnotationRepositories(prisma);
 const annotationMainServices = new AnnotationMainServices(annotationRepositories);
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function clearDatabase() {
+  await prisma.annotation.deleteMany();
+  await prisma.category.deleteMany();
+}
+
 async function registerListeners() {
   await categoryMainServices.createCategory();
   await categoryMainServices.updateCategory();
@@ -70,6 +76,7 @@ app
   .catch(e => console.error('Failed create window:', e));
 
 app.on('ready', async () => {
+  // await clearDatabase();
   await registerListeners();
 });
 

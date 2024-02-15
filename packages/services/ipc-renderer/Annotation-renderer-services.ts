@@ -1,4 +1,4 @@
-import type { TAnnotation, TCreateAnnotationParams } from '../../models/AnnotationModel';
+import type { TAnnotation, TCreateAnnotationParams, TUpdateAnnotationParams } from '../../models/AnnotationModel';
 import type { ElectronAPI } from '@electron-toolkit/preload';
 
 export class AnnotationRendererServices {
@@ -10,11 +10,11 @@ export class AnnotationRendererServices {
     const annotation = this.ipcElectron.sendSync('create-annotation', { name, content, categories });
     return annotation;
   }
-  async updateAnnotation({ id, name, content, categories }: TAnnotation): Promise<TAnnotation | undefined> {
+  async updateAnnotation({ id, name, content, categories }: TUpdateAnnotationParams): Promise<TAnnotation | undefined> {
     const annotation = this.ipcElectron.sendSync('update-annotation', { id, name, content, categories });
     return annotation;
   }
-  async deleteAnnotation(annotationId: string) {
+  async deleteAnnotation(annotationId: number) {
     this.ipcElectron.sendSync('delete-annotation', annotationId);
   }
   async getAnnotations(): Promise<TAnnotation[]> {

@@ -12,7 +12,6 @@ const App = () => {
       <UserProvider>
         <CssBaseline />
         <ToolBar />
-
         <Home />
       </UserProvider>
     </ThemeProvider>

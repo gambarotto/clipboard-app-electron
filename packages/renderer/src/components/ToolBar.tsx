@@ -1,6 +1,6 @@
 import { Stack, TextField } from '@mui/material';
 
-const TOOLBAR_HEIGHT = 50;
+const TOOLBAR_HEIGHT = 56;
 
 export function ToolBar() {
   return (
@@ -26,7 +26,7 @@ export function ToolBar() {
           width: 200,
           '& .MuiOutlinedInput-root': {
             borderRadius: 2,
-            height: 30,
+            height: 40,
             '& fieldset': {
               borderColor: 'gray',
             },
@@ -42,7 +42,6 @@ export function ToolBar() {
             opacity: 1,
           },
           '& .MuiInputBase-input': {
-            fontSize: 12,
             color: 'white', // Substitua 'green' pela cor desejada
           },
         }}

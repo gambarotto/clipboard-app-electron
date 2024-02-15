@@ -1,4 +1,4 @@
-import { Accordion, AccordionActions, AccordionDetails, AccordionSummary, IconButton, Stack } from '@mui/material';
+import { Accordion, AccordionActions, AccordionDetails, AccordionSummary, Chip, IconButton, Stack, getLuminance, darken, lighten } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import palette from '../theme/palette';
 import { Footer } from '../components/Footer';
@@ -10,14 +10,25 @@ import { ModalNewCategory } from '../components/ModalNewCategory';
 import { useUser } from '../context/user-context';
 import type { TAnnotation } from '../../../models/AnnotationModel';
 
+const getColorContrast = (color: string) => {
+  const luminance = getLuminance(color);
+  return luminance > 0.5 ? darken(color, 0.5) : lighten(color, 0.7);
+
+};
+
 export default function Home() {
   const { palette: { grey } } = palette;
 
-  const { annotations } = useUser();
+  const { annotations, deleteAnnotation, getAnnotations } = useUser();
 
   const [openModalAnnotation, setOpenModalAnnotation] = useState(false);
   const [openModalCategory, setOpenModalCategory] = useState(false);
   const [selectedAnnotation, setSelectedAnnotation] = useState<TAnnotation>();
+  const [expanded, setExpanded] = useState<string | false>('');
+
+  const handleChangeAccordion = (panel: string) => (event: React.SyntheticEvent, newExpanded: boolean) => {
+    setExpanded(newExpanded ? panel : false);
+  };
 
   const handleCloseModalAnnotation = useCallback(() => {
     setOpenModalAnnotation(false);
@@ -34,22 +45,52 @@ export default function Home() {
   const handleOpenModalCategory = useCallback(() => {
     setOpenModalCategory(true);
   }, []);
-
+  const handleDeleteAnnotation = useCallback(async(annotationId: number) => {
+    await deleteAnnotation(annotationId);
+    await getAnnotations();
+  }, [deleteAnnotation]);
+  
   return (
     <Stack sx={{}}>
       {annotations.length > 0 &&
         annotations.map(annotation => (
-          <Accordion key={annotation.id}>
+          <Accordion
+            key={annotation.id}
+            expanded={expanded === annotation.id.toString()}
+            onChange={handleChangeAccordion(annotation.id.toString())}
+          >
             <AccordionSummary
               expandIcon={<ExpandMoreIcon sx={{color: grey[200]}} />}
-              aria-controls="panel1-content"
-              id="panel1-header"
+              aria-controls="content"
+              id="header"
             >
               {annotation.name}
             </AccordionSummary>
-            <AccordionDetails>{annotation.content}</AccordionDetails>
+            <AccordionDetails>
+              <Stack>
+                {annotation.content}
+                <Stack
+                  direction="row"
+                  gap={2}
+                  mt={2}
+                  alignItems={'center'}
+                >
+                  {annotation.categories.map(category => (
+                    <Chip
+                      variant="filled"
+                      label={category.title}
+                      sx={{
+                        backgroundColor: category.color,
+                        color: getColorContrast(category.color),
+                        fontWeight: 'bold',
+                      }}
+                    />
+                  ))}
+                </Stack>
+              </Stack>
+            </AccordionDetails>
             <AccordionActions>
-              <IconButton>
+              <IconButton onClick={() => handleDeleteAnnotation(annotation.id)}>
                 <DeleteIcon
                   fontSize="small"
                   sx={{

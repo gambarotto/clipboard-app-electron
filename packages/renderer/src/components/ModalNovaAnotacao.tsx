@@ -10,7 +10,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ClearIcon from '@mui/icons-material/Clear';
 import MultipleSelectChip from './MultiSelectChip';
 import type { TAnnotation, TAnnotationCategoryParams } from '../../../models/AnnotationModel';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useUser } from '../context/user-context';
 interface Props {
   open: boolean;
@@ -30,16 +30,30 @@ const style = {
 };
 
 const getNameCategories = (annotationSelected: TAnnotation) => {
+  if (!annotationSelected.categories) {
+    return [];
+  }
+  console.log(annotationSelected.categories.map(cat => cat.title));
+  
   return annotationSelected.categories.map(cat => cat.title);
 };
 
 export function ModalNovaAnotacao({ open, handleClose, annotation }: Props) {
-  const { createAnnotation, categories } = useUser();
+  const { createAnnotation, categories, getAnnotations, updateAnnotation } = useUser();
   const [selectedCategories, setSelectedCategories] = useState<TAnnotationCategoryParams[]>([]);
-  const [selectedCategoriesNames, setSelectedCategoriesNames] = useState<string[]>(annotation ? getNameCategories(annotation):[]);
-  const [nomeAnnotation, setNomeAnnotation] = useState(annotation?.name || '');
-  const [contentAnnotation, setContentAnnotation] = useState(annotation?.content || '');
+  const [selectedCategoriesNames, setSelectedCategoriesNames] = useState<string[]>([]);
+  const [nomeAnnotation, setNomeAnnotation] = useState('');
+  const [contentAnnotation, setContentAnnotation] = useState('');
 
+  useEffect(() => {
+    if (annotation && annotation.id) {
+      setNomeAnnotation(annotation.name);
+      setContentAnnotation(annotation.content);
+      setSelectedCategories(annotation.categories || []);
+      setSelectedCategoriesNames(getNameCategories(annotation));
+    }
+  }, [annotation]);
+  
   const handleCategoryChange = (data: string[]) => {
     const formattedData = categories
       .filter(category => data.includes(category.title))
@@ -50,15 +64,27 @@ export function ModalNovaAnotacao({ open, handleClose, annotation }: Props) {
   };
 
   const handleAnnotation = useCallback(async() => {
-    const annotation = {
+    const data = {
       name: nomeAnnotation,
       content: contentAnnotation,
       categories: selectedCategories,
     };
 
-    await createAnnotation(annotation);
+    if (annotation?.id) {
+      const newData = {
+        ...data,
+        id: annotation.id,
+        categories: selectedCategories,
+      };
+
+      await updateAnnotation(newData);
+    } else {
+      await createAnnotation(data);
+    }
+
+    await getAnnotations();
     handleClose();
-  }, [nomeAnnotation, contentAnnotation, selectedCategories, handleClose, createAnnotation]);
+  }, [nomeAnnotation, contentAnnotation, selectedCategories, handleClose, createAnnotation, updateAnnotation]);
 
   const handleClear = useCallback(() => {
     setNomeAnnotation('');
@@ -66,6 +92,12 @@ export function ModalNovaAnotacao({ open, handleClose, annotation }: Props) {
     setSelectedCategories([]);
     setSelectedCategoriesNames([]);
   }, []);
+
+  useEffect(() => {
+    if (!annotation ?? !annotation?.id) {
+      handleClear();
+    }
+  }, [annotation, handleClear]);
 
   return (
     <Modal
@@ -120,7 +152,7 @@ export function ModalNovaAnotacao({ open, handleClose, annotation }: Props) {
               id="nome-annotation"
               label="Nome"
               variant="outlined"
-              value={annotation?.name ?? nomeAnnotation}
+              value={nomeAnnotation}
               onChange={e => setNomeAnnotation(e.target.value)}
               fullWidth
               sx={{
