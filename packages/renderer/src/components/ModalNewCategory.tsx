@@ -11,6 +11,7 @@ import ColorLensIcon from '@mui/icons-material/ColorLens';
 import { useCallback, useState } from 'react';
 import { ViewColorPicker } from './ViewColorPicker';
 import { useUser } from '../context/user-context';
+import { SNACKBAR_ID, SNACKBAR_MESSAGE, SNACKBAR_TYPE, useSnackbar } from '../context/snackbar-provider';
 
 interface Props {
   open: boolean;
@@ -31,6 +32,7 @@ const style = {
 
 export function ModalNewCategory({ open, handleClose }: Props) {
   const { createCategory } = useUser();
+  const { handleModal } = useSnackbar();
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [colorCategory, setColorCategory] = useState('');
   const [nameCategory,setNameCategory] = useState('');
@@ -42,7 +44,20 @@ export function ModalNewCategory({ open, handleClose }: Props) {
       setColorCategory(color);
   }, []);
   const handleCategory = useCallback(async() => {
-    await createCategory({title: nameCategory, color: colorCategory, active: true});
+    const category = await createCategory({title: nameCategory, color: colorCategory, active: true});
+    if (!category) {
+      handleModal({
+        snackbarId: SNACKBAR_ID.CATEGORY,
+        message: SNACKBAR_MESSAGE.CATEGORY_CREATED_ERROR_TITLE_ALREADY_EXISTS,
+        type: SNACKBAR_TYPE.ERROR,
+      });
+      return;
+    }
+    handleModal({
+      snackbarId: SNACKBAR_ID.CATEGORY,
+      message: SNACKBAR_MESSAGE.CATEGORY_CREATED,
+      type: SNACKBAR_TYPE.SUCCESS,
+    });
     handleClose();
   }, [createCategory, nameCategory, colorCategory, handleClose]);
 

@@ -9,6 +9,7 @@ import { useCallback, useState } from 'react';
 import { ModalNewCategory } from '../components/ModalNewCategory';
 import { useUser } from '../context/user-context';
 import type { TAnnotation } from '../../../models/AnnotationModel';
+import { SNACKBAR_ID, useSnackbar } from '../context/snackbar-provider';
 
 const getColorContrast = (color: string) => {
   const luminance = getLuminance(color);
@@ -20,6 +21,8 @@ export default function Home() {
   const { palette: { grey } } = palette;
 
   const { annotations, deleteAnnotation, getAnnotations } = useUser();
+  const { CustomSnackBar } = useSnackbar();
+
 
   const [openModalAnnotation, setOpenModalAnnotation] = useState(false);
   const [openModalCategory, setOpenModalCategory] = useState(false);
@@ -77,6 +80,7 @@ export default function Home() {
                 >
                   {annotation.categories.map(category => (
                     <Chip
+                      key={category.id}
                       variant="filled"
                       label={category.title}
                       sx={{
@@ -122,6 +126,8 @@ export default function Home() {
         open={openModalCategory}
         handleClose={handleCloseModalCategory}
       />
+      <CustomSnackBar snackbarId={SNACKBAR_ID.CATEGORY} />
+      <CustomSnackBar snackbarId={SNACKBAR_ID.ANNOTATION} />
     </Stack>
   );
 }

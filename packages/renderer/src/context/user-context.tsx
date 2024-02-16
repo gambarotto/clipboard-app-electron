@@ -7,12 +7,16 @@ import { AnnotationRendererServices } from '../../../services/ipc-renderer/Annot
 type TInitialState = {
   categories: TCategory[];
   annotations: TAnnotation[];
-  createCategory(category: TCreateCategoryParams): Promise<void>;
-  updateCategory: (category: TCategory) => Promise<void>;
+  createCategory: (category: TCreateCategoryParams) => Promise<TCategory | null | undefined>;
+  updateCategory: (category: TCategory) => Promise<TCategory | null | undefined>;
   deleteCategory: (categoryId: number) => Promise<void>;
   getCategories: () => Promise<void>;
-  createAnnotation(annotation: TCreateAnnotationParams): Promise<void>;
-  updateAnnotation: (annotation: TUpdateAnnotationParams) => Promise<void>;
+  createAnnotation: (
+    annotation: TCreateAnnotationParams,
+  ) => Promise<TAnnotation | null | undefined>;
+  updateAnnotation: (
+    annotation: TUpdateAnnotationParams,
+  ) => Promise<TAnnotation | null | undefined>;
   deleteAnnotation: (annotationId: number) => Promise<void>;
   getAnnotations: () => Promise<void>;
 };
@@ -39,7 +43,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     async (category: TCreateCategoryParams) => {
       try {
         const newCategory = await categoryRendererServices.createCategory(category);
+        if (!newCategory) return null;
         setCategories([...categories, newCategory]);
+        return newCategory;
       } catch (error) {
         console.log('error', error);
       }
@@ -50,9 +56,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     async (category: TCategory) => {
       try {
         const updatedCategory = await categoryRendererServices.updateCategory(category);
-        if (updatedCategory) {
-          setCategories([...categories, updatedCategory]);
-        }
+        if (!updatedCategory) return null;
+
+        setCategories([...categories, updatedCategory]);
+        return updatedCategory;
       } catch (error) {
         console.log('ctx.updateCategory', error);
       }
@@ -83,7 +90,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     async (annotation: TCreateAnnotationParams) => {
       try {
         const newAnnotation = await annotationRendererServices.createAnnotation(annotation);
+        if (!newAnnotation) return null;
         setAnnotations([...annotations, newAnnotation]);
+        return newAnnotation;
       } catch (error) {
         console.log('error', error);
       }
@@ -94,9 +103,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     async (annotation: TUpdateAnnotationParams) => {
       try {
         const updatedAnnotation = await annotationRendererServices.updateAnnotation(annotation);
-        if (updatedAnnotation) {
-          setAnnotations([...annotations, updatedAnnotation]);
-        }
+        if (!updatedAnnotation) return null;
+
+        setAnnotations([...annotations, updatedAnnotation]);
+        return updatedAnnotation;
       } catch (error) {
         console.log('ctx.updateAnnotation', error);
       }

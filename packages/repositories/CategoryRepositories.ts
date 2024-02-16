@@ -7,7 +7,7 @@ import type { TCategory } from '../models/CategoryModel';
 export type TCategoryRepository = {
   getCategories: () => Promise<TCategory[]>;
   getCategoryById: (id: number) => Promise<TCategory | null>;
-  createCategory: (category: Omit<TCategory, 'id'>) => Promise<TCategory>;
+  createCategory: (category: Omit<TCategory, 'id'>) => Promise<TCategory|null>;
   updateCategory: (category: TCategory) => Promise<TCategory>;
   deleteCategory: (categoryId: number) => Promise<void>;
 }
@@ -35,9 +35,11 @@ export class CategoryRepository implements TCategoryRepository {
     const alreadyExists = await this.prisma.category.findFirst({where: {
       title: category.title,
     }});
+
     if (alreadyExists) {
-      throw new Error('Category already exists');
+      return null;
     }
+    
     const newCategory = await this.prisma.category.create({
       data: category,
     });

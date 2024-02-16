@@ -12,6 +12,7 @@ import MultipleSelectChip from './MultiSelectChip';
 import type { TAnnotation, TAnnotationCategoryParams } from '../../../models/AnnotationModel';
 import { useCallback, useEffect, useState } from 'react';
 import { useUser } from '../context/user-context';
+import { SNACKBAR_ID, SNACKBAR_MESSAGE, SNACKBAR_TYPE, useSnackbar } from '../context/snackbar-provider';
 interface Props {
   open: boolean;
   handleClose: () => void;
@@ -40,6 +41,7 @@ const getNameCategories = (annotationSelected: TAnnotation) => {
 
 export function ModalNovaAnotacao({ open, handleClose, annotation }: Props) {
   const { createAnnotation, categories, getAnnotations, updateAnnotation } = useUser();
+  const {handleModal} = useSnackbar();
   const [selectedCategories, setSelectedCategories] = useState<TAnnotationCategoryParams[]>([]);
   const [selectedCategoriesNames, setSelectedCategoriesNames] = useState<string[]>([]);
   const [nomeAnnotation, setNomeAnnotation] = useState('');
@@ -77,9 +79,35 @@ export function ModalNovaAnotacao({ open, handleClose, annotation }: Props) {
         categories: selectedCategories,
       };
 
-      await updateAnnotation(newData);
+      const updatedAnnotation = await updateAnnotation(newData);
+      if (!updatedAnnotation) {
+        handleModal({
+          snackbarId: SNACKBAR_ID.ANNOTATION,
+          message: SNACKBAR_MESSAGE.ANNOTATION_UPDATED_ERROR,
+          type: SNACKBAR_TYPE.ERROR,
+        });
+        return;
+      }
+      handleModal({
+        snackbarId: SNACKBAR_ID.ANNOTATION,
+        message: SNACKBAR_MESSAGE.ANNOTATION_UPDATED,
+        type: SNACKBAR_TYPE.SUCCESS,
+      });
     } else {
-      await createAnnotation(data);
+      const createdCategory = await createAnnotation(data);
+      if (!createdCategory) {
+        handleModal({
+          snackbarId: SNACKBAR_ID.ANNOTATION,
+          message: SNACKBAR_MESSAGE.ANNOTATION_CREATED_ERROR_NAME_ALREADY_EXISTS,
+          type: SNACKBAR_TYPE.ERROR,
+        });
+        return;
+      }
+      handleModal({
+        snackbarId: SNACKBAR_ID.ANNOTATION,
+        message: SNACKBAR_MESSAGE.ANNOTATION_CREATED,
+        type: SNACKBAR_TYPE.SUCCESS,
+      });
     }
 
     await getAnnotations();

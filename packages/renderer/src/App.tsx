@@ -5,14 +5,17 @@ import { ThemeProvider } from '@mui/material/styles';
 import { theme } from './theme';
 import { ToolBar } from './components/ToolBar';
 import { UserProvider } from './context/user-context';
+import { SnackbarProvider } from './context/snackbar-provider';
 
 const App = () => {
   return (
     <ThemeProvider theme={theme}>
       <UserProvider>
-        <CssBaseline />
-        <ToolBar />
-        <Home />
+        <SnackbarProvider>
+          <CssBaseline />
+          <ToolBar />
+          <Home />
+        </SnackbarProvider>
       </UserProvider>
     </ThemeProvider>
   );
