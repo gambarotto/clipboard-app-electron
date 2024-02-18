@@ -1,45 +1,43 @@
-import { Accordion, AccordionActions, AccordionDetails, AccordionSummary, Chip, IconButton, Stack, getLuminance, darken, lighten } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import palette from '../theme/palette';
 import { Footer } from '../components/Footer';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditNoteIcon from '@mui/icons-material/EditNote';
 import { ModalNovaAnotacao } from '../components/ModalNovaAnotacao';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ModalNewCategory } from '../components/ModalNewCategory';
-import { useUser } from '../context/user-context';
-import type { TAnnotation } from '../../../models/AnnotationModel';
 import { SNACKBAR_ID, useSnackbar } from '../context/snackbar-provider';
+import { Stack, Tab, Tabs } from '@mui/material';
+import { AnnotationTab, CategoryTab, CustomTabPanel } from './Tabs';
+import { useUser } from '../context/user-context';
 
-const getColorContrast = (color: string) => {
-  const luminance = getLuminance(color);
-  return luminance > 0.5 ? darken(color, 0.5) : lighten(color, 0.7);
-
-};
+function a11yProps(index: number) {
+  return {
+    id: `simple-tab-${index}`,
+    'aria-controls': `simple-tabpanel-${index}`,
+  };
+}
 
 export default function Home() {
-  const { palette: { grey } } = palette;
-
-  const { annotations, deleteAnnotation, getAnnotations } = useUser();
   const { CustomSnackBar } = useSnackbar();
 
+  const [tabValue, setTabValue] = useState(0);
+  const {getAnnotations, getCategories} = useUser();
 
   const [openModalAnnotation, setOpenModalAnnotation] = useState(false);
   const [openModalCategory, setOpenModalCategory] = useState(false);
-  const [selectedAnnotation, setSelectedAnnotation] = useState<TAnnotation>();
-  const [expanded, setExpanded] = useState<string | false>('');
+  useEffect(() => {
+    if (tabValue === 0) {
+      getAnnotations();
+    }
+    if (tabValue === 1) {
+      getCategories();
+    }
+  }, [tabValue]);
 
-  const handleChangeAccordion = (panel: string) => (event: React.SyntheticEvent, newExpanded: boolean) => {
-    setExpanded(newExpanded ? panel : false);
+  const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
   };
-
   const handleCloseModalAnnotation = useCallback(() => {
     setOpenModalAnnotation(false);
   }, []);
-  const handleOpenModalAnnotation = useCallback((annotation?: TAnnotation ) => {
-    if (annotation) { 
-      setSelectedAnnotation(annotation);
-    }
+  const handleOpenModalAnnotation = useCallback(() => {
     setOpenModalAnnotation(true);
   }, []);
   const handleCloseModalCategory = useCallback(() => {
@@ -48,71 +46,40 @@ export default function Home() {
   const handleOpenModalCategory = useCallback(() => {
     setOpenModalCategory(true);
   }, []);
-  const handleDeleteAnnotation = useCallback(async(annotationId: number) => {
-    await deleteAnnotation(annotationId);
-    await getAnnotations();
-  }, [deleteAnnotation]);
   
   return (
     <Stack sx={{}}>
-      {annotations.length > 0 &&
-        annotations.map(annotation => (
-          <Accordion
-            key={annotation.id}
-            expanded={expanded === annotation.id.toString()}
-            onChange={handleChangeAccordion(annotation.id.toString())}
-          >
-            <AccordionSummary
-              expandIcon={<ExpandMoreIcon sx={{color: grey[200]}} />}
-              aria-controls="content"
-              id="header"
-            >
-              {annotation.name}
-            </AccordionSummary>
-            <AccordionDetails>
-              <Stack>
-                {annotation.content}
-                <Stack
-                  direction="row"
-                  gap={2}
-                  mt={2}
-                  alignItems={'center'}
-                >
-                  {annotation.categories.map(category => (
-                    <Chip
-                      key={category.id}
-                      variant="filled"
-                      label={category.title}
-                      sx={{
-                        backgroundColor: category.color,
-                        color: getColorContrast(category.color),
-                        fontWeight: 'bold',
-                      }}
-                    />
-                  ))}
-                </Stack>
-              </Stack>
-            </AccordionDetails>
-            <AccordionActions>
-              <IconButton onClick={() => handleDeleteAnnotation(annotation.id)}>
-                <DeleteIcon
-                  fontSize="small"
-                  sx={{
-                    color: grey[200],
-                  }}
-                />
-              </IconButton>
-              <IconButton onClick={() => handleOpenModalAnnotation(annotation)}>
-                <EditNoteIcon
-                  sx={{
-                    color: 'primary.main',
-                  }}
-                />
-              </IconButton>
-            </AccordionActions>
-          </Accordion>
-        ))}
-
+      <Tabs
+        value={tabValue}
+        onChange={handleChangeTab}
+        sx={{
+          borderBottom: 1,
+          borderColor: 'divider',
+        }}
+      >
+        <Tab
+          label="Anotações"
+          sx={{flex: 1, color: 'grey.300'}}
+          {...a11yProps(0)}
+        />
+        <Tab
+          label="Categorias"
+          sx={{flex: 1, color: 'grey.300'}}
+          {...a11yProps(1)}
+        />
+      </Tabs>
+      <CustomTabPanel
+        value={tabValue}
+        index={0}
+      >
+        <AnnotationTab />
+      </CustomTabPanel>
+      <CustomTabPanel
+        value={tabValue}
+        index={1}
+      >
+        <CategoryTab />
+      </CustomTabPanel>
       <Footer
         handleOpenAnnotation={handleOpenModalAnnotation}
         handleOpenCategory={handleOpenModalCategory}
@@ -120,7 +87,6 @@ export default function Home() {
       <ModalNovaAnotacao
         open={openModalAnnotation}
         handleClose={handleCloseModalAnnotation}
-        annotation={selectedAnnotation}
       />
       <ModalNewCategory
         open={openModalCategory}

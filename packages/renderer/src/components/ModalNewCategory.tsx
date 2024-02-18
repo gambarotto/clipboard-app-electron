@@ -8,14 +8,16 @@ import Typography from '@mui/material/Typography';
 import { Button, IconButton, Stack, TextField } from '@mui/material';
 import ClearIcon from '@mui/icons-material/Clear';
 import ColorLensIcon from '@mui/icons-material/ColorLens';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ViewColorPicker } from './ViewColorPicker';
 import { useUser } from '../context/user-context';
 import { SNACKBAR_ID, SNACKBAR_MESSAGE, SNACKBAR_TYPE, useSnackbar } from '../context/snackbar-provider';
+import type { TCategory } from '../../../models/CategoryModel';
 
 interface Props {
   open: boolean;
   handleClose: () => void;
+  category?: TCategory | undefined;
 }
 
 const style = {
@@ -30,12 +32,19 @@ const style = {
 };
 
 
-export function ModalNewCategory({ open, handleClose }: Props) {
-  const { createCategory } = useUser();
+export function ModalNewCategory({ open, handleClose, category }: Props) {
+  const { createCategory, updateCategory } = useUser();
   const { handleModal } = useSnackbar();
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [colorCategory, setColorCategory] = useState('');
   const [nameCategory,setNameCategory] = useState('');
+
+  useEffect(() => {
+    if (category?.id) {
+      setColorCategory(category.color);
+      setNameCategory(category.title);
+    }
+  }, [category]);
 
   const handleCloseColorPicker = useCallback(() => {
     setShowColorPicker(false);
@@ -44,20 +53,41 @@ export function ModalNewCategory({ open, handleClose }: Props) {
       setColorCategory(color);
   }, []);
   const handleCategory = useCallback(async() => {
-    const category = await createCategory({title: nameCategory, color: colorCategory, active: true});
-    if (!category) {
+    if (category?.id) {
+      const updatedCategory = await updateCategory({id: category.id, title: nameCategory, color: colorCategory, active: true});
+      if (!updatedCategory) {
+        handleModal({
+          snackbarId: SNACKBAR_ID.CATEGORY,
+          message: SNACKBAR_MESSAGE.CATEGORY_CREATED_ERROR_TITLE_ALREADY_EXISTS,
+          type: SNACKBAR_TYPE.ERROR,
+        });
+        return;
+      }
       handleModal({
         snackbarId: SNACKBAR_ID.CATEGORY,
-        message: SNACKBAR_MESSAGE.CATEGORY_CREATED_ERROR_TITLE_ALREADY_EXISTS,
-        type: SNACKBAR_TYPE.ERROR,
+        message: SNACKBAR_MESSAGE.CATEGORY_UPDATED,
+        type: SNACKBAR_TYPE.SUCCESS,
       });
-      return;
+    } else {
+      const newCategory = await createCategory({
+        title: nameCategory,
+        color: colorCategory,
+        active: true,
+      });
+      if (!newCategory) {
+        handleModal({
+          snackbarId: SNACKBAR_ID.CATEGORY,
+          message: SNACKBAR_MESSAGE.CATEGORY_CREATED_ERROR_TITLE_ALREADY_EXISTS,
+          type: SNACKBAR_TYPE.ERROR,
+        });
+        return;
+      }
+      handleModal({
+        snackbarId: SNACKBAR_ID.CATEGORY,
+        message: SNACKBAR_MESSAGE.CATEGORY_CREATED,
+        type: SNACKBAR_TYPE.SUCCESS,
+      });
     }
-    handleModal({
-      snackbarId: SNACKBAR_ID.CATEGORY,
-      message: SNACKBAR_MESSAGE.CATEGORY_CREATED,
-      type: SNACKBAR_TYPE.SUCCESS,
-    });
     handleClose();
   }, [createCategory, nameCategory, colorCategory, handleClose]);
 
@@ -112,6 +142,7 @@ export function ModalNewCategory({ open, handleClose }: Props) {
             <TextField
               label="Nome da Categoria"
               variant="outlined"
+              value={nameCategory}
               onChange={e => setNameCategory(e.target.value)}
               fullWidth
               sx={{

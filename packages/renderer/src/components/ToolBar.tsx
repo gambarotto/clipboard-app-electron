@@ -10,7 +10,7 @@ export function ToolBar() {
       height={TOOLBAR_HEIGHT}
       width={'100%'}
       sx={{
-        '-webkit-app-region': 'drag',
+        WebkitAppRegion: 'drag',
         p: 1,
         position: 'relative',
         alignItems: 'center',
@@ -21,7 +21,7 @@ export function ToolBar() {
         size="small"
         placeholder="Pesquisar"
         sx={{
-          '-webkit-app-region': 'no-drag',
+          WebkitAppRegion: 'no-drag',
           zIndex: 1000,
           width: 200,
           '& .MuiOutlinedInput-root': {

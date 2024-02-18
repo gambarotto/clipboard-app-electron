@@ -16,7 +16,7 @@ import { SNACKBAR_ID, SNACKBAR_MESSAGE, SNACKBAR_TYPE, useSnackbar } from '../co
 interface Props {
   open: boolean;
   handleClose: () => void;
-  annotation: TAnnotation | undefined;
+  annotation?: TAnnotation;
 }
 
 const style = {
@@ -34,13 +34,11 @@ const getNameCategories = (annotationSelected: TAnnotation) => {
   if (!annotationSelected.categories) {
     return [];
   }
-  console.log(annotationSelected.categories.map(cat => cat.title));
-  
   return annotationSelected.categories.map(cat => cat.title);
 };
 
 export function ModalNovaAnotacao({ open, handleClose, annotation }: Props) {
-  const { createAnnotation, categories, getAnnotations, updateAnnotation } = useUser();
+  const { createAnnotation, categories, updateAnnotation } = useUser();
   const {handleModal} = useSnackbar();
   const [selectedCategories, setSelectedCategories] = useState<TAnnotationCategoryParams[]>([]);
   const [selectedCategoriesNames, setSelectedCategoriesNames] = useState<string[]>([]);
@@ -109,8 +107,6 @@ export function ModalNovaAnotacao({ open, handleClose, annotation }: Props) {
         type: SNACKBAR_TYPE.SUCCESS,
       });
     }
-
-    await getAnnotations();
     handleClose();
   }, [nomeAnnotation, contentAnnotation, selectedCategories, handleClose, createAnnotation, updateAnnotation]);
 

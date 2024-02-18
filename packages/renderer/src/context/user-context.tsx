@@ -44,7 +44,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       try {
         const newCategory = await categoryRendererServices.createCategory(category);
         if (!newCategory) return null;
-        setCategories([...categories, newCategory]);
+        await getCategories();
         return newCategory;
       } catch (error) {
         console.log('error', error);
@@ -58,7 +58,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         const updatedCategory = await categoryRendererServices.updateCategory(category);
         if (!updatedCategory) return null;
 
-        setCategories([...categories, updatedCategory]);
+        await getCategories();
         return updatedCategory;
       } catch (error) {
         console.log('ctx.updateCategory', error);
@@ -70,6 +70,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     async(categoryId: number) => {
       try {
         await categoryRendererServices.deleteCategory(categoryId);
+        await getCategories();
       } catch (error) {
         console.log('ctx.deleteCategory', error);
       }
@@ -91,7 +92,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       try {
         const newAnnotation = await annotationRendererServices.createAnnotation(annotation);
         if (!newAnnotation) return null;
-        setAnnotations([...annotations, newAnnotation]);
+        await getAnnotations();
         return newAnnotation;
       } catch (error) {
         console.log('error', error);
@@ -117,6 +118,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     async (annotationId: number) => {
       try {
         await annotationRendererServices.deleteAnnotation(annotationId);
+        await getAnnotations();
       } catch (error) {
         console.log('ctx.deleteAnnotation', error);
       }
