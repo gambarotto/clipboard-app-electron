@@ -1,6 +1,6 @@
 import { Accordion, AccordionActions, AccordionDetails, AccordionSummary, Chip, IconButton, Stack, darken, getLuminance, lighten } from '@mui/material';
 import palette from '../../theme/palette';
-import { useUser } from '../../context/user-context';
+import { useAppContext } from '../../context/app-context';
 import { useCallback, useState } from 'react';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -21,9 +21,17 @@ export function AnnotationTab() {
       palette: {grey},
     } = palette;
 
-  const { annotations, deleteAnnotation } = useUser();
+  const { annotations, deleteAnnotation, searchedAnnotations } = useAppContext();
 
   const [expanded, setExpanded] = useState<string | false>('');
+
+  const data = useCallback(() => {
+    if (searchedAnnotations.length > 0) {
+      return searchedAnnotations;
+    }
+    return annotations;
+  }, [annotations, searchedAnnotations]);
+
   const handleChangeAccordion =
     (panel: string, text: string) => (event: React.SyntheticEvent, newExpanded: boolean) => {
       window.clipboard.writeText(text);
@@ -42,8 +50,8 @@ export function AnnotationTab() {
 
   return (
     <>
-      {annotations.length > 0 &&
-        annotations.map(annotation => (
+      {data().length > 0 &&
+        data().map(annotation => (
           <Accordion
             key={annotation.id}
             expanded={expanded === annotation.id.toString()}

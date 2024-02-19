@@ -6,12 +6,12 @@ import Modal from '@mui/material/Modal';
 import Fade from '@mui/material/Fade';
 import Typography from '@mui/material/Typography';
 import { Button, IconButton, Stack, TextField, Tooltip  } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
+import ClearAllIcon from '@mui/icons-material/ClearAll';
 import ClearIcon from '@mui/icons-material/Clear';
 import MultipleSelectChip from './MultiSelectChip';
 import type { TAnnotation, TAnnotationCategoryParams } from '../../../models/AnnotationModel';
 import { useCallback, useEffect, useState } from 'react';
-import { useUser } from '../context/user-context';
+import { useAppContext } from '../context/app-context';
 import { SNACKBAR_ID, SNACKBAR_MESSAGE, SNACKBAR_TYPE, useSnackbar } from '../context/snackbar-provider';
 interface Props {
   open: boolean;
@@ -38,7 +38,7 @@ const getNameCategories = (annotationSelected: TAnnotation) => {
 };
 
 export function ModalNovaAnotacao({ open, handleClose, annotation }: Props) {
-  const { createAnnotation, categories, updateAnnotation } = useUser();
+  const { createAnnotation, categories, updateAnnotation } = useAppContext();
   const {handleModal} = useSnackbar();
   const [selectedCategories, setSelectedCategories] = useState<TAnnotationCategoryParams[]>([]);
   const [selectedCategoriesNames, setSelectedCategoriesNames] = useState<string[]>([]);
@@ -52,7 +52,13 @@ export function ModalNovaAnotacao({ open, handleClose, annotation }: Props) {
       setSelectedCategories(annotation.categories || []);
       setSelectedCategoriesNames(getNameCategories(annotation));
     }
-  }, [annotation]);
+    if (!open) {
+      setNomeAnnotation('');
+      setContentAnnotation('');
+      setSelectedCategories([]);
+      setSelectedCategoriesNames([]);
+    }
+  }, [annotation, open]);
   
   const handleCategoryChange = (data: string[]) => {
     const formattedData = categories
@@ -91,6 +97,7 @@ export function ModalNovaAnotacao({ open, handleClose, annotation }: Props) {
         message: SNACKBAR_MESSAGE.ANNOTATION_UPDATED,
         type: SNACKBAR_TYPE.SUCCESS,
       });
+
     } else {
       const createdCategory = await createAnnotation(data);
       if (!createdCategory) {
@@ -264,7 +271,7 @@ export function ModalNovaAnotacao({ open, handleClose, annotation }: Props) {
             >
               <Tooltip title="Limpar campos">
                 <IconButton onClick={handleClear}>
-                  <DeleteIcon
+                  <ClearAllIcon
                     fontSize="small"
                     sx={{
                       color: 'grey.300',
@@ -274,6 +281,7 @@ export function ModalNovaAnotacao({ open, handleClose, annotation }: Props) {
               </Tooltip>
               <Button
                 variant="contained"
+                disabled={!nomeAnnotation || !contentAnnotation || !selectedCategoriesNames.length}
                 onClick={handleAnnotation}
                 sx={{
                   color: 'background.default',

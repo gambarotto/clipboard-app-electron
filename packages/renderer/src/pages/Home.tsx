@@ -5,7 +5,7 @@ import { ModalNewCategory } from '../components/ModalNewCategory';
 import { SNACKBAR_ID, useSnackbar } from '../context/snackbar-provider';
 import { Stack, Tab, Tabs } from '@mui/material';
 import { AnnotationTab, CategoryTab, CustomTabPanel } from './Tabs';
-import { useUser } from '../context/user-context';
+import { useAppContext } from '../context/app-context';
 
 function a11yProps(index: number) {
   return {
@@ -17,23 +17,20 @@ function a11yProps(index: number) {
 export default function Home() {
   const { CustomSnackBar } = useSnackbar();
 
-  const [tabValue, setTabValue] = useState(0);
-  const {getAnnotations, getCategories} = useUser();
+  const {getAnnotations, getCategories, handleChangeTab, tabIndex} = useAppContext();
 
   const [openModalAnnotation, setOpenModalAnnotation] = useState(false);
   const [openModalCategory, setOpenModalCategory] = useState(false);
+
   useEffect(() => {
-    if (tabValue === 0) {
+    if (tabIndex === 0) {
       getAnnotations();
     }
-    if (tabValue === 1) {
+    if (tabIndex === 1) {
       getCategories();
     }
-  }, [tabValue]);
+  }, [tabIndex]);
 
-  const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue);
-  };
   const handleCloseModalAnnotation = useCallback(() => {
     setOpenModalAnnotation(false);
   }, []);
@@ -50,7 +47,7 @@ export default function Home() {
   return (
     <Stack sx={{}}>
       <Tabs
-        value={tabValue}
+        value={tabIndex}
         onChange={handleChangeTab}
         sx={{
           borderBottom: 1,
@@ -69,13 +66,13 @@ export default function Home() {
         />
       </Tabs>
       <CustomTabPanel
-        value={tabValue}
+        value={tabIndex}
         index={0}
       >
         <AnnotationTab />
       </CustomTabPanel>
       <CustomTabPanel
-        value={tabValue}
+        value={tabIndex}
         index={1}
       >
         <CategoryTab />

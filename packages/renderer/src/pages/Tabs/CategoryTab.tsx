@@ -1,6 +1,6 @@
 import { Accordion, AccordionActions, AccordionSummary, IconButton, Stack, Typography } from '@mui/material';
 
-import { useUser } from '../../context/user-context';
+import { useAppContext } from '../../context/app-context';
 import { useCallback, useState } from 'react';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -15,9 +15,17 @@ export function CategoryTab() {
    } = palette;
   const [selectedCategory, setSelectedCategory] = useState<TCategory>();
   const [openModalCategory, setOpenModalCategory] = useState(false);
-  const { categories, deleteCategory, getCategories } = useUser();
+  const { categories, deleteCategory, getCategories, searchedCategories } = useAppContext();
 
   const [expanded, setExpanded] = useState<string | false>('');
+
+  const data = useCallback(() => {
+    if (searchedCategories.length > 0) {
+      return searchedCategories;
+    }
+    return categories;
+  }, [categories, searchedCategories]);
+
   const handleChangeAccordion =
     (panel: string) => (event: React.SyntheticEvent, newExpanded: boolean) => {
       setExpanded(newExpanded ? panel : false);
@@ -39,8 +47,8 @@ export function CategoryTab() {
 
   return (
     <>
-      {categories.length > 0 &&
-        categories.map(category => (
+      {data().length > 0 &&
+        data().map(category => (
           <Accordion
             key={category.id}
             expanded={expanded === category.id.toString()}

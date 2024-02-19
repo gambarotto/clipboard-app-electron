@@ -6,11 +6,15 @@ import { AnnotationRendererServices } from '../../../services/ipc-renderer/Annot
 
 type TInitialState = {
   categories: TCategory[];
+  searchedCategories: TCategory[];
   annotations: TAnnotation[];
+  searchedAnnotations: TAnnotation[];
+  handleSearchCategories: (text: string) => void;
   createCategory: (category: TCreateCategoryParams) => Promise<TCategory | null | undefined>;
   updateCategory: (category: TCategory) => Promise<TCategory | null | undefined>;
   deleteCategory: (categoryId: number) => Promise<void>;
   getCategories: () => Promise<void>;
+  handleSearchAnnotations: (text: string) => void;
   createAnnotation: (
     annotation: TCreateAnnotationParams,
   ) => Promise<TAnnotation | null | undefined>;
@@ -19,14 +23,21 @@ type TInitialState = {
   ) => Promise<TAnnotation | null | undefined>;
   deleteAnnotation: (annotationId: number) => Promise<void>;
   getAnnotations: () => Promise<void>;
+  tabIndex: number;
+  handleChangeTab: (event: React.SyntheticEvent, newValue: number) => void;
 };
 
-const UserContext = createContext<TInitialState>({} as TInitialState);
+const AppContext = createContext<TInitialState>({} as TInitialState);
 
-export function UserProvider({ children }: { children: React.ReactNode }) {
+export function AppContextProvider({ children }: { children: React.ReactNode }) {
   const [categories, setCategories] = useState<TCategory[]>([]);
   const [annotations, setAnnotations] = useState<TAnnotation[]>([]);
+
+  const [tabIndex,setTabIndex] = useState(0);
   
+  const [searchedCategories, setSearchedCategories] = useState<TCategory[]>([]);
+  const [searchedAnnotations, setSearchedAnnotations] = useState<TAnnotation[]>([]);
+
   const categoryRendererServices = new CategoryRendererServices(window.electron.ipcRenderer);
   const annotationRendererServices = new AnnotationRendererServices(window.electron.ipcRenderer);
 
@@ -38,7 +49,15 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     getAnnotations();
   }, []);
 
+  const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
+    setTabIndex(newValue);
+  };
+
   // Categories
+  const handleSearchCategories = useCallback((text: string) => {
+    const filterCategories = categories.filter((category) => category.title.toLowerCase().includes(text.toLowerCase()));
+    setSearchedCategories(filterCategories);
+  }, [categories]);
   const createCategory = useCallback(
     async (category: TCreateCategoryParams) => {
       try {
@@ -87,6 +106,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, [categoryRendererServices.getCategories]);
 
   // Annotations
+  const handleSearchAnnotations = useCallback((text: string) => {
+    const filterNameAnnotations = annotations.filter((annotation) => annotation.name.toLowerCase().includes(text.toLowerCase()));
+    const filterContentAnnotations = annotations.filter(annotation =>
+      annotation.content.toLowerCase().includes(text.toLowerCase()),
+    );
+    const setSearch = new Set([...filterNameAnnotations, ...filterContentAnnotations]);
+    setSearchedAnnotations(Array.from(setSearch));
+  }, [annotations]);
   const createAnnotation = useCallback(
     async (annotation: TCreateAnnotationParams) => {
       try {
@@ -105,8 +132,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       try {
         const updatedAnnotation = await annotationRendererServices.updateAnnotation(annotation);
         if (!updatedAnnotation) return null;
-
-        setAnnotations([...annotations, updatedAnnotation]);
+        await getAnnotations();
         return updatedAnnotation;
       } catch (error) {
         console.log('ctx.updateAnnotation', error);
@@ -135,27 +161,33 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, [annotationRendererServices.getAnnotations]);
 
   return (
-    <UserContext.Provider
+    <AppContext.Provider
       value={{
         categories,
+        searchedCategories,
         annotations,
+        searchedAnnotations,
+        handleSearchCategories,
         createCategory,
         updateCategory,
         deleteCategory,
         getCategories,
+        handleSearchAnnotations,
         createAnnotation,
         updateAnnotation,
         deleteAnnotation,
         getAnnotations,
+        tabIndex,
+        handleChangeTab,
       }}
     >
       {children}
-    </UserContext.Provider>
+    </AppContext.Provider>
   );
 }
 
-export const useUser = () => {
-  const context = useContext(UserContext);
+export const useAppContext = () => {
+  const context = useContext(AppContext);
   if (context === undefined) {
     throw new Error('useCategory must be used within a CategoryProvider');
   }

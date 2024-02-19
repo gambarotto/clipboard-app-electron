@@ -10,7 +10,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import ColorLensIcon from '@mui/icons-material/ColorLens';
 import { useCallback, useEffect, useState } from 'react';
 import { ViewColorPicker } from './ViewColorPicker';
-import { useUser } from '../context/user-context';
+import { useAppContext } from '../context/app-context';
 import { SNACKBAR_ID, SNACKBAR_MESSAGE, SNACKBAR_TYPE, useSnackbar } from '../context/snackbar-provider';
 import type { TCategory } from '../../../models/CategoryModel';
 
@@ -33,18 +33,23 @@ const style = {
 
 
 export function ModalNewCategory({ open, handleClose, category }: Props) {
-  const { createCategory, updateCategory } = useUser();
+  const { createCategory, updateCategory } = useAppContext();
   const { handleModal } = useSnackbar();
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [colorCategory, setColorCategory] = useState('');
   const [nameCategory,setNameCategory] = useState('');
 
   useEffect(() => {
+    if (!open) {
+      setColorCategory('');
+      setNameCategory('');
+    }
+    
     if (category?.id) {
       setColorCategory(category.color);
       setNameCategory(category.title);
     }
-  }, [category]);
+  }, [category, open]);
 
   const handleCloseColorPicker = useCallback(() => {
     setShowColorPicker(false);
@@ -146,7 +151,7 @@ export function ModalNewCategory({ open, handleClose, category }: Props) {
               onChange={e => setNameCategory(e.target.value)}
               fullWidth
               sx={{
-                '-webkit-app-region': 'no-drag',
+                WebkitAppRegion: 'no-drag',
                 '& label.Mui-focused': {
                   color: 'grey.200', // Cor da label quando o TextField está focado
                 },
@@ -186,16 +191,19 @@ export function ModalNewCategory({ open, handleClose, category }: Props) {
                 variant="text"
                 size="small"
                 endIcon={<ColorLensIcon />}
-                onClick={() => setShowColorPicker(true)}
+                onClick={() => setShowColorPicker(showColorPicker => !showColorPicker)}
               >
                 Escolha uma cor
               </Button>
               {colorCategory && (
-                <Stack
-                  width={30}
-                  height={30}
-                  borderRadius={1}
-                  bgcolor={colorCategory}
+                <Button
+                  onClick={() => setShowColorPicker(showColorPicker => !showColorPicker)}
+                  sx={{
+                    bgcolor: colorCategory,
+                    width: 30,
+                    height: 30,
+                    borderRadius: 1,
+                  }}
                 />
               )}
             </Stack>
@@ -218,6 +226,7 @@ export function ModalNewCategory({ open, handleClose, category }: Props) {
               <Button
                 variant="contained"
                 onClick={handleCategory}
+                disabled={!nameCategory || !colorCategory || showColorPicker}
                 sx={{
                   color: 'background.default',
                 }}
